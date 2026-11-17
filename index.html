@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quotes</title>
+    <!-- Load Tailwind CSS for clean, responsive utility styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Arial', 'Helvetica', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="min-h-[100dvh] w-full flex items-center justify-center bg-[#0000FF] text-[#FFFFFF] font-sans select-none cursor-pointer p-8 sm:p-16 antialiased overflow-hidden">
+
+    <!-- Main Quote Container -->
+    <main class="max-w-3xl w-full text-center">
+        <p id="quote-display" class="whitespace-pre-line text-[clamp(1.5rem,4.5vw,3rem)] font-medium leading-relaxed sm:leading-snug tracking-tight transition-opacity duration-200 ease-in-out opacity-100">
+            <!-- Initial quote populated via JavaScript -->
+        </p>
+    </main>
+
+    <script>
+        // Exact list of 18 quotes formatted with intentional pauses
+        const quotes = [
+            "Gods gonna do it",
+            "Do you want to be on your deathbed\nknowing that you could,\nbut didn't?",
+            "What a privilege it is\nto be challenged",
+            "Try not.\nDo, or do not.\nThere is no try",
+            "Train like I've never won\nand compete like I've never lost",
+            "I'm not better than you,\nbut no one is better than me",
+            "Do so much work\nit is unreasonable not to achieve it",
+            "Have a why,\nhe who has a why can bare any how",
+            "Play the game\nfor the sake of the game",
+            "Think about the pay off\nand endure the cost",
+            "Forget wishing for things",
+            "Go first,\naction beats reaction",
+            "Winning is the only option",
+            "Consistency creates identity",
+            "I am becoming\neverything I said I would",
+            "Nothing changes\nunless you do",
+            "Do first,\nperfect later",
+            "Icarus laughed as he fell\nfor he knew to fall\nmeans to once have soared",
+            "Comfort is the enemy of achievement",
+            "How you do anything\nis how you do everything",
+            "Start where you are.\nUse what you have.\nDo what you can.",
+            "Pain is temporary.\nQuitting lasts forever."
+        ];
+
+        const quoteElement = document.getElementById('quote-display');
+        let cycleQueue = [];
+        let cycleIndex = 0;
+        let lastShownQuote = null;
+        let isTransitioning = false;
+
+        /**
+         * Creates a new Fisher-Yates shuffled cycle of all quotes,
+         * ensuring the first quote of the new cycle does not match
+         * the last quote of the previous cycle.
+         */
+        function buildNewCycle() {
+            const shuffled = [...quotes];
+
+            // Fisher-Yates shuffle
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+
+            // Prevent immediate repeat across cycle boundaries
+            if (shuffled.length > 1 && shuffled[0] === lastShownQuote) {
+                const swapIdx = 1 + Math.floor(Math.random() * (shuffled.length - 1));
+                [shuffled[0], shuffled[swapIdx]] = [shuffled[swapIdx], shuffled[0]];
+            }
+
+            cycleQueue = shuffled;
+            cycleIndex = 0;
+        }
+
+        /**
+         * Retrieves the next quote in the current cycle, reshuffling when exhausted.
+         * @returns {string} The next quote to display.
+         */
+        function getNextQuoteInCycle() {
+            if (cycleIndex >= cycleQueue.length) {
+                buildNewCycle();
+            }
+            const nextQuote = cycleQueue[cycleIndex];
+            cycleIndex++;
+            lastShownQuote = nextQuote;
+            return nextQuote;
+        }
+
+        /**
+         * Advances to the next quote in the shuffled cycle with a smooth fade transition.
+         * @param {boolean} immediate - If true, skips the fade-out delay (used on initial load).
+         */
+        function showNextQuote(immediate = false) {
+            if (isTransitioning) return;
+
+            try {
+                const nextQuote = getNextQuoteInCycle();
+
+                if (immediate) {
+                    quoteElement.textContent = nextQuote;
+                    return;
+                }
+
+                isTransitioning = true;
+                // Fade out
+                quoteElement.classList.remove('opacity-100');
+                quoteElement.classList.add('opacity-0');
+
+                // Wait for fade-out to complete before swapping text and fading back in
+                setTimeout(() => {
+                    quoteElement.textContent = nextQuote;
+                    quoteElement.classList.remove('opacity-0');
+                    quoteElement.classList.add('opacity-100');
+                    isTransitioning = false;
+                }, 180);
+            } catch (error) {
+                console.error("Failed to update quote:", error);
+                isTransitioning = false;
+            }
+        }
+
+        // Initialize shuffled cycle and display the first quote on load
+        window.addEventListener('DOMContentLoaded', () => {
+            buildNewCycle();
+            showNextQuote(true);
+        });
+
+        // Advance quote when clicking or tapping anywhere on the screen
+        document.body.addEventListener('click', () => {
+            showNextQuote(false);
+        });
+
+        // Advance quote on Space or Enter key press
+        window.addEventListener('keydown', (event) => {
+            if (event.code === 'Space' || event.code === 'Enter') {
+                event.preventDefault();
+                showNextQuote(false);
+            }
+        });
+    </script>
+</body>
+</html>
